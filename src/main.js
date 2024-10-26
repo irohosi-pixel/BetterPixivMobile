@@ -665,6 +665,12 @@ const themeChange = (isDark) => {
 let i18n;
 const i18nLib = {
   en: {
+    OSErrMsgs: {
+      alertMsg:
+        '[BetterPixivMobile]\nYour device does not appear to be a smartphone or tablet. Script execution has been stopped to prevent malfunction.',
+      promptMsg:
+        '[BetterPixivMobile]\nPlease enter "y" to force this script to work. If "y" is entered, the terminal OS will not be checked next time.\nIf you installed BetterPixivMobile on your computer by mistake, please uninstall it. Close this message by typing any letter other than "y."',
+    },
     settings: {
       general: 'General',
       save: 'Save',
@@ -704,6 +710,12 @@ const i18nLib = {
     },
   },
   ja: {
+    OSErrMsgs: {
+      alertMsg:
+        '[BetterPixivMobile]\nお使いの端末はスマートフォンまたはタブレットではないようです。誤動作を防ぐためにスクリプトの実行を停止しています。',
+      promptMsg:
+        '[BetterPixivMobile]\n強制的に動作させるためには「y」を入力してください。「y」を入力した場合、次回から端末OSの確認を行いません。\nもし間違ってBetterPixivMobileをパソコンにインストールした場合はアンインストールしてください。「y」以外の文字を入力してこのメッセージを閉じます。',
+    },
     settings: {
       general: '一般',
       save: '保存',
@@ -756,6 +768,7 @@ switch (lang) {
     i18n = i18nLib.en;
     break;
 }
+let MOManager;
 
 const logSwitch = GM_getValue('sw_logOutput', false);
 const pluginSwitch = {
@@ -1163,18 +1176,20 @@ div[class='mt-16 relative flex flex-col']:has(a[href='/premium/lead/lp?g=anchor&
           document.querySelector('.bp-bigPictureNext').addEventListener('click', () => {
             location.hash = `#big_${new Number(location.hash.match(/#big_(\d+)/)[1]) + 1}`;
           });
-        }
-        if (document.querySelector('.bp-bigPicturePrev')) {
-          if (new Number(location.hash.match(/#big_(\d+)/)[1]) == 0) {
-            document.querySelector('.bp-bigPicturePrev').style.display = 'none';
-          } else {
-            document.querySelector('.bp-bigPicturePrev').style.display = '';
-          }
-          if (new Number(location.hash.match(/#big_(\d+)/)[1]) == maxPageNum) {
-            document.querySelector('.bp-bigPictureNext').style.display = 'none';
-          } else {
-            document.querySelector('.bp-bigPictureNext').style.display = '';
-          }
+          window.addEventListener('hashchange', () => {
+            if (document.querySelector('.bp-bigPicturePrev')) {
+              if (new Number(location.hash.match(/#big_(\d+)/)[1]) == 0) {
+                document.querySelector('.bp-bigPicturePrev').style.display = 'none';
+              } else {
+                document.querySelector('.bp-bigPicturePrev').style.display = '';
+              }
+              if (new Number(location.hash.match(/#big_(\d+)/)[1]) == maxPageNum) {
+                document.querySelector('.bp-bigPictureNext').style.display = 'none';
+              } else {
+                document.querySelector('.bp-bigPictureNext').style.display = '';
+              }
+            }
+          });
         }
       }
     },
@@ -1582,127 +1597,145 @@ div[class='mt-16 relative flex flex-col']:has(a[href='/premium/lead/lp?g=anchor&
     },
   ],
 ];
-plugins.forEach((plugin) => {
-  // プラグインが無効の場合
-  if (!pluginSwitch[plugin[0]]) return;
-  if (plugin[2]) {
-    // MOコールバックの場合
-    // MOインスタンス生成
-    plugin[4] = new MutationObserver(plugin[1]);
-    if (plugin[3]()) {
-      // 実行対象ページならMO監視開始
-      log(`[bp:${plugin[0]}] MO start observing`);
-      plugin[4].observe(plugin[6].target, plugin[6].config);
-      plugin[5] = true;
-    }
-  } else if (plugin[3]()) {
-    // 通常関数の場合
-    // 実行対象ページなら関数を実行
-    plugin[1]();
-    plugin[5] = true;
-  }
-});
-log('[bp:pluginManager] ---pluginState---');
-log(plugins);
 
-// プラグインMO管理用MO
-// MOマネージャーのMOインスタンス生成
-let MOManager = new MutationObserver((mutationList, observer) => {
-  for (const mutation of mutationList) {
-    if (mutation.type != 'childList' || location.href == cachedHrefMOManager) return;
-    // mutationのタイプがchildListかつキャッシュ済みURLと現在のURLが異なる場合
-    cachedHrefMOManager = location.href;
-    plugins.forEach((plugin) => {
-      if (!pluginSwitch[plugin[0]]) return;
-      if (plugin[2]) {
-        if (plugin[3]()) {
-          if (plugin[5]) return;
-          log(`[bp:${plugin[0]}] MO start observing`);
-          plugin[4].observe(plugin[6].target, plugin[6].config);
-          plugin[5] = true;
-        } else if (plugin[5]) {
-          log(`[bp:${plugin[0]}] MO disconnected`);
-          plugin[4].disconnect();
-          plugin[5] = false;
-        }
-      } else if (plugin[3]() && !plugin[5]) {
-        // 関数を実行
-        plugin[1]();
+const ua = window.navigator.userAgent.toLowerCase();
+if (
+  ua.indexOf('android') !== -1 ||
+  ua.indexOf('iphone') !== -1 ||
+  ua.indexOf('ipad') !== -1 ||
+  GM_getValue('OSCheckBypass', false)
+) {
+  plugins.forEach((plugin) => {
+    // プラグインが無効の場合
+    if (!pluginSwitch[plugin[0]]) return;
+    if (plugin[2]) {
+      // MOコールバックの場合
+      // MOインスタンス生成
+      plugin[4] = new MutationObserver(plugin[1]);
+      if (plugin[3]()) {
+        // 実行対象ページならMO監視開始
+        log(`[bp:${plugin[0]}] MO start observing`);
+        plugin[4].observe(plugin[6].target, plugin[6].config);
         plugin[5] = true;
       }
-    });
-    log('[bp:pluginManager] ---pluginState---');
-    log(plugins);
-  }
-});
-MOManager.observe(document.body, { childList: true, subtree: true });
+    } else if (plugin[3]()) {
+      // 通常関数の場合
+      // 実行対象ページなら関数を実行
+      plugin[1]();
+      plugin[5] = true;
+    }
+  });
+  log('[bp:pluginManager] ---pluginState---');
+  log(plugins);
 
-if (GM_getValue('version', '0.0.0') != GM_info.script.version) {
-  const updateModal = document.createElement('div');
-  updateModal.classList.add('bp-modal');
-  updateModal.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="bp-closeModalBtn bp-closeModalBtn-um"><path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z"></path></svg>
+  // プラグインMO管理用MO
+  // MOマネージャーのMOインスタンス生成
+  MOManager = new MutationObserver((mutationList, observer) => {
+    for (const mutation of mutationList) {
+      if (mutation.type != 'childList' || location.href == cachedHrefMOManager) return;
+      // mutationのタイプがchildListかつキャッシュ済みURLと現在のURLが異なる場合
+      cachedHrefMOManager = location.href;
+      plugins.forEach((plugin) => {
+        if (!pluginSwitch[plugin[0]]) return;
+        if (plugin[2]) {
+          if (plugin[3]()) {
+            if (plugin[5]) return;
+            log(`[bp:${plugin[0]}] MO start observing`);
+            plugin[4].observe(plugin[6].target, plugin[6].config);
+            plugin[5] = true;
+          } else if (plugin[5]) {
+            log(`[bp:${plugin[0]}] MO disconnected`);
+            plugin[4].disconnect();
+            plugin[5] = false;
+          }
+        } else if (plugin[3]() && !plugin[5]) {
+          // 関数を実行
+          plugin[1]();
+          plugin[5] = true;
+        }
+      });
+      log('[bp:pluginManager] ---pluginState---');
+      log(plugins);
+    }
+  });
+  MOManager.observe(document.body, { childList: true, subtree: true });
+
+  if (GM_getValue('version', '0.0.0') != GM_info.script.version) {
+    const updateModal = document.createElement('div');
+    updateModal.classList.add('bp-modal');
+    updateModal.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="bp-closeModalBtn bp-closeModalBtn-um"><path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z"></path></svg>
 <div class="bp-modalInner">
   <p class="bp-categoryTitle">${i18n.updateModal.title.replace('%0', GM_info.script.version)}</p>
   <p>${i18n.updateModal.body.replace('%0', GM_info.script.version)}</p>
 </div><div class="bp-settingBottom">
   <label><input type="checkbox" class="bp-updateModalCheck">${i18n.updateModal.check}</label>
 </div>`;
-  document.body.appendChild(updateModal);
+    document.body.appendChild(updateModal);
 
-  const updateModalBack = document.createElement('div');
-  updateModalBack.classList.add('bp-modalBack');
-  document.body.appendChild(updateModalBack);
+    const updateModalBack = document.createElement('div');
+    updateModalBack.classList.add('bp-modalBack');
+    document.body.appendChild(updateModalBack);
 
-  document.body.style.overflow = 'hidden';
-  updateModal.querySelector('.bp-closeModalBtn-um').addEventListener('click', () => {
-    if (updateModal.querySelector('.bp-updateModalCheck').checked) {
-      GM_setValue('version', GM_info.script.version);
-    }
-    updateModal.remove();
-    updateModalBack.remove();
-    document.body.style.overflow = '';
-  });
-  updateModalBack.addEventListener('click', () => {
-    if (updateModal.querySelector('.bp-updateModalCheck').checked) {
-      GM_setValue('version', GM_info.script.version);
-    }
-    updateModal.remove();
-    updateModalBack.remove();
-    document.body.style.overflow = '';
-  });
-}
+    document.body.style.overflow = 'hidden';
+    updateModal.querySelector('.bp-closeModalBtn-um').addEventListener('click', () => {
+      if (updateModal.querySelector('.bp-updateModalCheck').checked) {
+        GM_setValue('version', GM_info.script.version);
+      }
+      updateModal.remove();
+      updateModalBack.remove();
+      document.body.style.overflow = '';
+    });
+    updateModalBack.addEventListener('click', () => {
+      if (updateModal.querySelector('.bp-updateModalCheck').checked) {
+        GM_setValue('version', GM_info.script.version);
+      }
+      updateModal.remove();
+      updateModalBack.remove();
+      document.body.style.overflow = '';
+    });
+  }
 
-if (GM_getValue('firstRun', true)) {
-  const firstRunModal = document.createElement('div');
-  firstRunModal.classList.add('bp-modal');
-  firstRunModal.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="bp-closeModalBtn bp-closeModalBtn-frm"><path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z"></path></svg>
+  if (GM_getValue('firstRun', true)) {
+    const firstRunModal = document.createElement('div');
+    firstRunModal.classList.add('bp-modal');
+    firstRunModal.innerHTML = `<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" class="bp-closeModalBtn bp-closeModalBtn-frm"><path d="M20.7457 3.32851C20.3552 2.93798 19.722 2.93798 19.3315 3.32851L12.0371 10.6229L4.74275 3.32851C4.35223 2.93798 3.71906 2.93798 3.32854 3.32851C2.93801 3.71903 2.93801 4.3522 3.32854 4.74272L10.6229 12.0371L3.32856 19.3314C2.93803 19.722 2.93803 20.3551 3.32856 20.7457C3.71908 21.1362 4.35225 21.1362 4.74277 20.7457L12.0371 13.4513L19.3315 20.7457C19.722 21.1362 20.3552 21.1362 20.7457 20.7457C21.1362 20.3551 21.1362 19.722 20.7457 19.3315L13.4513 12.0371L20.7457 4.74272C21.1362 4.3522 21.1362 3.71903 20.7457 3.32851Z"></path></svg>
 <div class="bp-modalInner">
   <p class="bp-categoryTitle">${i18n.firstRunModal.title}</p>
   <p>${i18n.firstRunModal.body}</p>
 </div><div class="bp-settingBottom">
   <label><input type="checkbox" class="bp-firstRunModalCheck">${i18n.firstRunModal.check}</label>
 </div>`;
-  document.body.appendChild(firstRunModal);
+    document.body.appendChild(firstRunModal);
 
-  const firstRunModalBack = document.createElement('div');
-  firstRunModalBack.classList.add('bp-modalBack');
-  document.body.appendChild(firstRunModalBack);
+    const firstRunModalBack = document.createElement('div');
+    firstRunModalBack.classList.add('bp-modalBack');
+    document.body.appendChild(firstRunModalBack);
 
-  document.body.style.overflow = 'hidden';
-  firstRunModal.querySelector('.bp-closeModalBtn-frm').addEventListener('click', () => {
-    if (firstRunModal.querySelector('.bp-firstRunModalCheck').checked) {
-      GM_setValue('firstRun', false);
+    document.body.style.overflow = 'hidden';
+    firstRunModal.querySelector('.bp-closeModalBtn-frm').addEventListener('click', () => {
+      if (firstRunModal.querySelector('.bp-firstRunModalCheck').checked) {
+        GM_setValue('firstRun', false);
+      }
+      firstRunModal.remove();
+      firstRunModalBack.remove();
+      document.body.style.overflow = '';
+    });
+    firstRunModalBack.addEventListener('click', () => {
+      if (firstRunModal.querySelector('.bp-firstRunModalCheck').checked) {
+        GM_setValue('firstRun', false);
+      }
+      firstRunModal.remove();
+      firstRunModalBack.remove();
+      document.body.style.overflow = '';
+    });
+  }
+} else {
+  alert(i18n.OSErrMsgs.alertMsg);
+  const userInput = prompt(i18n.OSErrMsgs.promptMsg, '');
+  if (userInput && userInput.toLowerCase() == 'y') {
+    GM_setValue('OSCheckBypass', true);
+    if (confirm(i18n.settings.confirmReload)) {
+      location.reload();
     }
-    firstRunModal.remove();
-    firstRunModalBack.remove();
-    document.body.style.overflow = '';
-  });
-  firstRunModalBack.addEventListener('click', () => {
-    if (firstRunModal.querySelector('.bp-firstRunModalCheck').checked) {
-      GM_setValue('firstRun', false);
-    }
-    firstRunModal.remove();
-    firstRunModalBack.remove();
-    document.body.style.overflow = '';
-  });
+  }
 }
