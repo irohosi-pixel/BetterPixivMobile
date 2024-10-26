@@ -9,7 +9,7 @@ Make browsing Pixiv more convenient and comfortable.
 > Desktop version is currently under development<!-- [here](https://github.com/irohosi-pixel/BetterPixiv) -->.
 
 Links  
-~~GreasyFork~~ | [GitHub](https://github.com/irohosi-pixel/BetterPixivMobile)
+[GreasyFork](https://greasyfork.org/scripts/514158-betterpixivmobile) | [GitHub](https://github.com/irohosi-pixel/BetterPixivMobile)
 
 ## Features
 
@@ -33,7 +33,7 @@ Links
 
 Click a link below to open install page.
 
-~~Install from GreasyFork~~ | [Install from GitHub](https://raw.githubusercontent.com/irohosi-pixel/BetterPixivMobile/refs/heads/main/dist/BetterPixivMobile.user.js)
+[Install from GreasyFork](https://update.greasyfork.org/scripts/514158/BetterPixivMobile.user.js) | [Install from GitHub](https://raw.githubusercontent.com/irohosi-pixel/BetterPixivMobile/refs/heads/main/dist/BetterPixivMobile.user.js)
 
 ## Build yourself
 
@@ -95,4 +95,4 @@ In addition, this script may stop updating or stop releasing without prior notic
 
 ## License
 
-[GPLv3](https://github.com/irohosi-pixel/BetterPixivMobile/blob/main/LICENSE)
+[GPL-3.0](https://github.com/irohosi-pixel/BetterPixivMobile/blob/main/LICENSE)

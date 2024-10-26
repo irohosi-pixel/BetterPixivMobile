@@ -9,7 +9,7 @@ Pixivの閲覧をもっと便利・快適にします。
 > デスクトップ版は現在開発中です<!-- [ここ](https://github.com/irohosi-pixel/BetterPixiv)からどうぞ -->。
 
 リンク集  
-~~GreasyFork~~ | [GitHub](https://github.com/irohosi-pixel/BetterPixivMobile)
+[GreasyFork](https://greasyfork.org/scripts/514158-betterpixivmobile) | [GitHub](https://github.com/irohosi-pixel/BetterPixivMobile)
 
 ## 機能
 
@@ -33,7 +33,7 @@ Pixivの閲覧をもっと便利・快適にします。
 
 以下のリンクをクリックしてインストールページを開きます。
 
-~~Install from GreasyFork~~ | [Install from GitHub](https://raw.githubusercontent.com/irohosi-pixel/BetterPixivMobile/refs/heads/main/dist/BetterPixivMobile.user.js)
+[GreasyForkからインストール](https://update.greasyfork.org/scripts/514158/BetterPixivMobile.user.js) | [GitHubからインストール](https://raw.githubusercontent.com/irohosi-pixel/BetterPixivMobile/refs/heads/main/dist/BetterPixivMobile.user.js)
 
 ## 自分でビルドする
 
@@ -95,4 +95,4 @@ BetterPixivMobileはピクシブ株式会社の承認を受けたものではあ
 
 ## ライセンス
 
-[GPLv3](https://github.com/irohosi-pixel/BetterPixivMobile/blob/main/LICENSE)
+[GPL-3.0](https://github.com/irohosi-pixel/BetterPixivMobile/blob/main/LICENSE)

@@ -2,11 +2,11 @@
 // @name            BetterPixivMobile
 // @name:ja         BetterPixivMobile
 // @namespace       https://github.com/irohosi-pixel/BetterPixivMobile
-// @version         1.0.1
+// @version         1.0.2
 // @author          Irohosi Pixel(色星ぴくせる)
 // @description     Make browsing Pixiv more convenient and comfortable.
 // @description:ja  Pixivの閲覧をもっと便利・快適にします。
-// @license         GPLv3
+// @license         GPL-3.0
 // @icon            https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=32&url=https://www.pixiv.net
 // @icon64          https://t0.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&size=64&url=https://www.pixiv.net
 // @supportURL      https://github.com/irohosi-pixel/BetterPixivMobile/issues
